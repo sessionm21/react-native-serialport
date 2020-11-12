@@ -85,16 +85,17 @@ _Installation Successfuly_
 
 import React, { Component } from "react";
 import {
+  Button,
   StyleSheet,
   Text,
   View,
   TextInput,
-  Picker,
   TouchableOpacity,
   ScrollView,
   Alert,
   DeviceEventEmitter
 } from "react-native";
+import { Picker } from '@react-native-community/picker';
 import { RNSerialport, definitions, actions } from "react-native-serialport";
 //type Props = {};
 class ManualConnection extends Component {
@@ -163,7 +164,7 @@ class ManualConnection extends Component {
     RNSerialport.setReturnedDataType(this.state.returnedDataType);
     RNSerialport.setAutoConnect(false);
     RNSerialport.startUsbService();
-  }
+  };
 
   stopUsbListener = async () => {
     DeviceEventEmitter.removeAllListeners();
@@ -235,23 +236,18 @@ class ManualConnection extends Component {
     }
     this.setState({ output: data });
   }
-  fillDeviceList = async () => {
-    try {
-      const deviceList = await RNSerialport.getDeviceList();
-      if (deviceList.length > 0) {
-        this.setState({ deviceList });
+  fillDeviceList() {
+    RNSerialport.getDeviceList().then((response => {
+      if (response[0].status) {
+        this.setState({ deviceList: response, selectedDevice: response[0]});
       } else {
-        this.setState({
-          deviceList: [{ name: "Device Not Found", placeholder: true }]
-        });
+        Alert.alert(
+          "Error from getDeviceList()",
+          response.errorCode + " " + response.errorMessage
+        );
       }
-    } catch (err) {
-      Alert.alert(
-        "Error from getDeviceList()",
-        err.errorCode + " " + err.errorMessage
-      );
-    }
-  };
+    }));
+  }
   devicePickerItems() {
     return this.state.deviceList.map((device, index) =>
       !device.placeholder ? (
@@ -397,8 +393,9 @@ class ManualConnection extends Component {
                 !this.state.deviceList[0].placeholder
               }
               selectedValue={this.state.selectedDevice}
-              onValueChange={(value, index) =>
-                this.setState({ selectedDevice: value })
+              onValueChange={(value, index) => {
+                this.setState({ selectedDevice: value });
+              }
               }
             >
               {this.devicePickerItems()}
@@ -415,9 +412,11 @@ class ManualConnection extends Component {
           </TouchableOpacity>
           <TouchableOpacity
             style={this.buttonStyle(this.state.selectedDevice)}
-            disabled={!this.state.selectedDevice}
+            disabled={false}
             onPress={() => {
-              this.checkSupport();
+                 this.setState({selectedDevice: this.state.deviceList[0]});
+              // this.checkSupport();
+              //
             }}
           >
             <Text style={styles.buttonText}>Check Support</Text>

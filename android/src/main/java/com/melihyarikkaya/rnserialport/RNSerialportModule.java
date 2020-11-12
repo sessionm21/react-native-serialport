@@ -300,6 +300,7 @@ public class RNSerialportModule extends ReactContextBaseJavaModule {
       map.putString("name", d.getDeviceName());
       map.putInt("vendorId", d.getVendorId());
       map.putInt("productId", d.getProductId());
+      map.putBoolean("status", true);
 
       deviceList.pushMap(map);
     }
